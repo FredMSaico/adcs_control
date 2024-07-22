@@ -1,0 +1,13 @@
+launch:
+
+- node:
+    pkg: "adcs_control"
+    exec: "gui"
+    name: "gui"
+    namespace: ""
+
+- node:
+    pkg: "adcs_control"
+    exec: "pwm_publisher"
+    name: "pwm_publisher"
+    namespace: ""

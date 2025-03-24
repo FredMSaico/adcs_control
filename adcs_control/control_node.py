@@ -47,6 +47,7 @@ class AttitudeControlNode(Node):
         self.GyroX = 0
         self.GyroY = 0
         self.GyroZ = 0
+        self.w_rw = 0
 
         #PID control param
         self.setpoint_yaw = 0
@@ -66,9 +67,9 @@ class AttitudeControlNode(Node):
         self.t = 0
 
         # Constantes de control
-        self.kp_y = 5
-        self.ki_y = 0.05
-        self.kd_y = 0.7
+        self.kp_y = 0.0009
+        self.ki_y = 0.00000
+        self.kd_y = 0.00455
 
         self.kp_r = 0
         self.ki_r = 0
@@ -109,12 +110,17 @@ class AttitudeControlNode(Node):
         #print("PID Yaw:", self.u_yaw)
         #print("PID Roll:", self.u_roll)
         #print("PID Pitch:", self.u_pitch)
+            self.w_rw = self.w_rw + (self.u_yaw/0.0037)*self.dt
+            vol_set = ((((9.55*self.w_rw) - 20)/(4555-20))*4.9) + 0.1
+            pwm = (1024 * vol_set)/5
+            pwm = max(min(pwm, 1024), -1024)
 
         # Asignar los valores PWM dentro de un rango adecuado (por ejemplo, -1000 a 1000)
-            self.pwm1 = int(abs(self.u_roll))
-            self.pwm2 = int(abs(self.u_yaw))
-            self.pwm3 = int(abs(self.u_pitch))
-            print(f"{self.Yaw:<10} {self.Pitch:<10} {self.Roll:<10} {self.error_yaw:<10.2f} {self.GyroX:<10.2f} {self.GyroY:<10.2f} {self.GyroZ:<10.2f} {self.u_yaw:<10.1f} {self.t:<10.2f} {self.setpoint_yaw:<10.2f}")
+            self.pwm1 = 0 #int(abs(self.u_roll))
+            self.pwm2 = int(abs(pwm))
+            self.pwm3 = 0 #int(abs(self.u_pitch))
+            #print(pwm)
+            print(f"{self.Yaw:<10} {self.Pitch:<10} {self.Roll:<10} {self.GyroX:<10.2f} {self.GyroY:<10.2f} {self.GyroZ:<10.2f} {self.u_yaw:<10.1f} {self.t:<10.2f} {self.setpoint_yaw:<10.2f}")
 
             self.publish_topic()
 
@@ -145,7 +151,7 @@ class AttitudeControlNode(Node):
         self.pid_i_y = self.pid_i_y + self.ki_y*self.error_yaw            #Integral
 
         self.u_yaw = pid_p + pid_d + self.pid_i_y
-        self.u_yaw = max(min(self.u_yaw, 1024), -1024)
+
         if self.u_yaw > 0:
             self.dir2 = True
         else:
@@ -179,7 +185,7 @@ class AttitudeControlNode(Node):
         self.control_mode = msg.data
 
     def setpoint_callback(self, msg):
-        self.setpoint_yaw = 215 + 20 * np.cos(0.5236*self.t) #msg.data[0] 
+        self.setpoint_yaw = msg.data[0] #180 + 20 * np.cos(0.5236*self.t) 
         self.setpoint_roll = msg.data[1]
         self.setpoint_pitch = msg.data[2]
         msg = Float32()

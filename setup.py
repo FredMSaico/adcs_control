@@ -23,7 +23,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        	'controller = adcs_control.control_node:main',
+        	'pid_controller = adcs_control.control_node:main',
+        	'bosk_controller = adcs_control.bosk_controller:main',
+        	'feedback_controller = adcs_control.feedback_controller:main',
+        	'setpoint_publisher = adcs_control.setpoint_pub:main',
         	'pwm_publisher = adcs_control.pwm_pub:main',
         	'gui = adcs_control.gui_node:main',
         ],
